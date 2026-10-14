@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>تقرير التحليل الشامل — ARN Video Downloader</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f7fb; --panel:#ffffff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+    --blue:#2563eb; --blue-soft:#eff6ff; --green:#059669; --green-soft:#ecfdf5;
+    --amber:#d97706; --amber-soft:#fffbeb; --red:#dc2626; --red-soft:#fef2f2;
+    --violet:#7c3aed; --violet-soft:#f5f3ff; --slate-soft:#f1f5f9;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Cairo',system-ui,-apple-system,'Segoe UI',sans-serif;
+    font-size:15px; line-height:1.85; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px; margin:0 auto; padding:32px 22px 80px}
+  code,.mono{font-family:'JetBrains Mono',Consolas,monospace; direction:ltr; unicode-bidi:embed; font-size:.84em}
+  code{background:var(--slate-soft); border:1px solid var(--line); border-radius:5px; padding:1px 6px; color:#334155; white-space:nowrap}
+
+  /* Header */
+  .hero{
+    background:linear-gradient(135deg,#0f172a 0%,#1e293b 55%,#1e3a8a 100%);
+    border-radius:20px; padding:34px 32px; color:#fff; position:relative; overflow:hidden;
+    box-shadow:0 18px 40px -18px rgba(15,23,42,.5);
+  }
+  .hero:before{content:""; position:absolute; inset:0;
+    background:radial-gradient(circle at 88% 12%,rgba(16,185,129,.30),transparent 45%),
+               radial-gradient(circle at 8% 92%,rgba(37,99,235,.35),transparent 48%);}
+  .hero>*{position:relative}
+  .kicker{font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:#93c5fd; font-weight:700; margin:0 0 10px}
+  .hero h1{margin:0 0 8px; font-size:31px; font-weight:900; letter-spacing:-.4px}
+  .hero p.sub{margin:0; color:#cbd5e1; font-size:14.5px}
+  .hero .meta{margin-top:20px; display:flex; flex-wrap:wrap; gap:9px}
+  .chip{background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.20);
+    padding:5px 13px; border-radius:999px; font-size:12.5px; color:#e2e8f0; font-weight:600}
+  .chip b{color:#fff}
+
+  /* Sections */
+  h2{font-size:21px; font-weight:800; margin:44px 0 6px; display:flex; align-items:center; gap:11px}
+  h2 .num{
+    width:30px; height:30px; border-radius:9px; background:var(--blue); color:#fff;
+    font-size:14px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  h2+.lede{color:var(--muted); font-size:14px; margin:0 0 18px; padding-right:41px}
+  h3{font-size:16px; font-weight:700; margin:26px 0 10px}
+  p{margin:0 0 12px}
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:15px; padding:22px 24px; margin-bottom:16px;
+    box-shadow:0 1px 2px rgba(15,23,42,.04)}
+  .card.tight{padding:16px 18px}
+
+  /* Score grid */
+  .scores{display:grid; grid-template-columns:repeat(auto-fit,minmax(158px,1fr)); gap:12px; margin:20px 0 8px}
+  .score{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px 16px 14px; text-align:center}
+  .score .val{font-size:27px; font-weight:900; line-height:1.1}
+  .score .lbl{font-size:12px; color:var(--muted); font-weight:600; margin-top:4px}
+  .score .bar{height:5px; border-radius:99px; background:var(--slate-soft); margin-top:11px; overflow:hidden}
+  .score .bar i{display:block; height:100%; border-radius:99px}
+  .g{color:var(--green)} .gb{background:var(--green)}
+  .b{color:var(--blue)} .bb{background:var(--blue)}
+  .a{color:var(--amber)} .ab{background:var(--amber)}
+  .r{color:var(--red)} .rb{background:var(--red)}
+
+  /* Tables */
+  table{width:100%; border-collapse:collapse; font-size:13.5px; margin:6px 0 4px}
+  th{background:var(--slate-soft); text-align:right; padding:10px 12px; font-weight:700; font-size:12.5px;
+     color:#475569; border-bottom:1px solid var(--line); white-space:nowrap}
+  td{padding:10px 12px; border-bottom:1px solid #f1f5f9; vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:#fafbfe}
+  td.n{font-family:'JetBrains Mono',monospace; direction:ltr; text-align:right; font-size:12.5px; color:#334155; white-space:nowrap}
+
+  /* Badges */
+  .tag{display:inline-block; padding:2px 9px; border-radius:6px; font-size:11.5px; font-weight:700; white-space:nowrap}
+  .t-p0{background:var(--red-soft); color:var(--red); border:1px solid #fecaca}
+  .t-p1{background:var(--amber-soft); color:var(--amber); border:1px solid #fde68a}
+  .t-p2{background:var(--violet-soft); color:var(--violet); border:1px solid #ddd6fe}
+  .t-ok{background:var(--green-soft); color:var(--green); border:1px solid #a7f3d0}
+  .t-no{background:var(--red-soft); color:var(--red); border:1px solid #fecaca}
+  .t-mid{background:var(--amber-soft); color:var(--amber); border:1px solid #fde68a}
+  .t-info{background:var(--blue-soft); color:var(--blue); border:1px solid #bfdbfe}
+
+  /* Issue blocks */
+  .issue{border:1px solid var(--line); border-right:4px solid var(--line); border-radius:12px; padding:16px 18px; margin-bottom:12px; background:var(--panel)}
+  .issue.p0{border-right-color:var(--red); background:linear-gradient(90deg,var(--red-soft) 0%,var(--panel) 40%)}
+  .issue.p1{border-right-color:var(--amber); background:linear-gradient(90deg,var(--amber-soft) 0%,var(--panel) 40%)}
+  .issue.p2{border-right-color:var(--violet); background:linear-gradient(90deg,var(--violet-soft) 0%,var(--panel) 40%)}
+  .issue h4{margin:0 0 7px; font-size:15px; font-weight:700; display:flex; align-items:center; gap:9px; flex-wrap:wrap}
+  .issue p{margin:0 0 8px; font-size:13.8px; color:#334155}
+  .issue p:last-child{margin-bottom:0}
+  .fix{background:var(--green-soft); border:1px solid #a7f3d0; border-radius:9px; padding:10px 13px; font-size:13.3px; color:#065f46}
+  .fix b{color:#047857}
+
+  ul{margin:8px 0 12px; padding-right:22px}
+  li{margin-bottom:6px; font-size:14px}
+
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+
+  .kpi{display:flex; gap:13px; align-items:flex-start}
+  .kpi .dot{width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    font-size:15px; font-weight:800; flex-shrink:0}
+  .kpi .txt{font-size:13.6px; color:#334155}
+  .kpi .txt b{display:block; font-size:14.5px; color:var(--ink); margin-bottom:2px}
+
+  .road{display:flex; gap:14px; align-items:flex-start; padding:14px 0; border-bottom:1px dashed var(--line)}
+  .road:last-child{border-bottom:none}
+  .road .when{flex-shrink:0; width:104px; font-size:12.5px; font-weight:700; color:var(--muted)}
+  .road .what{font-size:14px; color:#334155}
+  .road .what b{color:var(--ink)}
+
+  footer{margin-top:52px; padding-top:22px; border-top:1px solid var(--line); color:var(--muted); font-size:12.6px; text-align:center}
+  .note{background:var(--blue-soft); border:1px solid #bfdbfe; border-radius:11px; padding:13px 16px; font-size:13.5px; color:#1e40af; margin:14px 0}
+  .warn{background:var(--red-soft); border:1px solid #fecaca; border-radius:11px; padding:13px 16px; font-size:13.5px; color:#991b1b; margin:14px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <p class="kicker">تقرير تحليل هندسي</p>
+    <h1>ARN Video Downloader — تحليل شامل</h1>
+    <p class="sub">تحليل معماري وأمني لبرنامج تنزيل الفيديو لسطح المكتب: البنية، جودة الكود، الثغرات، وجاهزية التوزيع.</p>
+    <div class="meta">
+      <span class="chip">الإصدار <b>1.0.0</b></span>
+      <span class="chip">Electron <b>31.7.7</b></span>
+      <span class="chip">React <b>18.3.1</b></span>
+      <span class="chip">TypeScript <b>5.5.3</b></span>
+      <span class="chip">التاريخ <b>15 سبتمبر 2026</b></span>
+      <span class="chip">الحجم <b>4,916 سطر</b></span>
+    </div>
+  </div>
+
+  <!-- ================= 1. الخلاصة التنفيذية ================= -->
+  <h2><span class="num">1</span> الخلاصة التنفيذية</h2>
+  <p class="lede">الصورة الكبيرة في 30 ثانية.</p>
+
+  <div class="card">
+    <p><b>المشروع ناضج وظيفياً أكثر مما يوحي حجمه.</b> فكرة التطبيق بسيطة، لكن التنفيذ يحتوي على تفاصيل هندسية تدل على تجربة عملية حقيقية: استرجاع تلقائي للأخطاء (HTTP 416)، تنظيف الملفات الجزئية التالفة، رسم تقدّم ثنائي المرحلة لدمج الفيديو والصوت، خادم HTTP محلي على <code>127.0.0.1</code> لتجاوز مشكلة Origin في مشغّل يوتيوب، وحفظ كامل لقائمة التنزيلات مع استئناف تلقائي بعد إعادة التشغيل. دي حاجات مش بتتكتب من أول محاولة.</p>
+    <p>في المقابل، المشروع فيه <b>4 مشاكل حرجة</b> بتمنع بعض الميزات المعلنة من إنها تشتغل فعلياً (مش مجرد كود وحش)، و<b>5 مشاكل أمنية</b> أهمها تثبيت شهادة جذر مخصّصة في مخزن ثقة الويندوز أثناء التثبيت — ودي أخطر نقطة في المشروع كله. وفيه فجوة واضحة في الممارسات الهندسية: <b>مفيش أي اختبارات، مفيش ESLint، ومفيش Git خالص</b>.</p>
+    <div class="warn">
+      <b>أهم حاجة محتاجة انتباه فوري:</b> المشروع <b>مش تحت أي نظام تحكم بالإصدارات</b> (مفيش <code>.git</code>). كل الكود في نسخة واحدة على الجهاز، وأي خطأ في ملف واحد ممكن يضيّع شغل. ده أعلى مخاطرة في التقرير كله — أعلى من أي ثغرة تقنية.
+    </div>
+  </div>
+
+  <div class="scores">
+    <div class="score"><div class="val g">8.5</div><div class="lbl">اكتمال الميزات</div><div class="bar"><i class="gb" style="width:85%"></i></div></div>
+    <div class="score"><div class="val g">8.0</div><div class="lbl">جودة المعمارية</div><div class="bar"><i class="gb" style="width:80%"></i></div></div>
+    <div class="score"><div class="val a">6.0</div><div class="lbl">متانة معالجة الأخطاء</div><div class="bar"><i class="ab" style="width:60%"></i></div></div>
+    <div class="score"><div class="val r">5.0</div><div class="lbl">الأمان</div><div class="bar"><i class="rb" style="width:50%"></i></div></div>
+    <div class="score"><div class="val r">3.5</div><div class="lbl">الاختبارات والجودة</div><div class="bar"><i class="rb" style="width:35%"></i></div></div>
+    <div class="score"><div class="val r">3.0</div><div class="lbl">جاهزية التوزيع</div><div class="bar"><i class="rb" style="width:30%"></i></div></div>
+    <div class="score"><div class="val a">6.5</div><div class="lbl">دقة التوثيق</div><div class="bar"><i class="ab" style="width:65%"></i></div></div>
+  </div>
+  <p style="font-size:13px;color:var(--muted);text-align:center;margin-top:2px">التقييم من 10 — مبني على فحص الكود الفعلي وحالة مخرجات البناء، مش على ملفات التوثيق.</p>
+
+  <!-- ================= 2. أرقام المشروع ================= -->
+  <h2><span class="num">2</span> أرقام المشروع الفعلية</h2>
+  <p class="lede">قياسات مباشرة من القرص، مش منقولة من التوثيق.</p>
+
+  <div class="grid2">
+    <div class="card tight">
+      <h3 style="margin-top:0">حجم الكود</h3>
+      <table>
+        <tbody>
+          <tr><td>إجمالي أسطر TypeScript/TSX</td><td class="n"><b>4,916</b></td></tr>
+          <tr><td>عدد ملفات المصدر</td><td class="n"><b>25</b></td></tr>
+          <tr><td>أكبر ملف</td><td class="n">download-manager.ts (1,146)</td></tr>
+          <tr><td>ثاني أكبر</td><td class="n">PlaylistView.tsx (354)</td></tr>
+          <tr><td>ملفات Main Process</td><td class="n">6</td></tr>
+          <tr><td>ملفات Renderer</td><td class="n">17</td></tr>
+          <tr><td>ملفات Preload</td><td class="n">1</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card tight">
+      <h3 style="margin-top:0">حجم المخرجات</h3>
+      <table>
+        <tbody>
+          <tr><td>حزمة Main</td><td class="n">52.3 KB</td></tr>
+          <tr><td>حزمة Preload</td><td class="n">2.5 KB</td></tr>
+          <tr><td>حزمة React (Renderer JS)</td><td class="n">338.2 KB</td></tr>
+          <tr><td>أنماط CSS</td><td class="n">47.7 KB</td></tr>
+          <tr><td>إجمالي الكود المُجمَّع</td><td class="n"><b>≈ 440 KB</b></td></tr>
+          <tr><td>مجلد التوزيع <code>win-unpacked</code></td><td class="n"><b>293 MB</b></td></tr>
+          <tr><td>ffmpeg.exe + yt-dlp.exe</td><td class="n">65.0 MB</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>ملاحظة على الحجم:</b> 293 ميجابايت للتطبيق طبيعي في تطبيقات Electron (وقود التشغيل نفسه ~180 ميجا)، لكن 65 ميجا منهم <code>ffmpeg.exe</code> لوحده. لو حابب تقلل الحجم بشكل ملموس، استخدم نسخة ffmpeg مبنية بـ <code>--disable-everything</code> مع تفعيل مفكّكات الصوت/الفيديو المطلوبة فقط — ممكن تنزل من 47 ميجا لـ 8-10 ميجا بدون أي خسارة وظيفية.
+  </div>
+
+  <!-- ================= 3. المعمارية ================= -->
+  <h2><span class="num">3</span> المعمارية والتصميم</h2>
+  <p class="lede">التطبيق مبني على نموذج Electron الثلاثي القياسي، مع فصل نظيف للمسؤوليات.</p>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr><th>الطبقة</th><th>الملفات</th><th>المسؤولية</th><th>التقييم</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>Main Process</b></td>
+          <td class="n">index.ts · download-manager.ts<br>ipc-handlers.ts · tray.ts<br>ad-blocker.ts · local-server.ts</td>
+          <td>إنشاء النافذة، تشغيل yt-dlp/ffmpeg، إدارة قائمة التنزيلات والتزامن، صينية النظام، خادم الملفات المحلي</td>
+          <td><span class="tag t-ok">فصل جيد</span></td>
+        </tr>
+        <tr>
+          <td><b>Preload Bridge</b></td>
+          <td class="n">preload/index.ts (95 سطر)</td>
+          <td>جسر <code>contextBridge</code> — 24 دالة مُعرّفة بتوقيعات TypeScript واضحة</td>
+          <td><span class="tag t-ok">ممتاز</span></td>
+        </tr>
+        <tr>
+          <td><b>Renderer</b></td>
+          <td class="n">17 ملف (React 18 + Zustand)</td>
+          <td>واجهة RTL عربية، متجران للحالة (بحث + تنزيلات)، 10 مكونات واجهة</td>
+          <td><span class="tag t-ok">منظم</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>قرارات تصميمية جديرة بالإشادة</h3>
+  <div class="card">
+    <div class="kpi" style="margin-bottom:15px">
+      <div class="dot" style="background:var(--green-soft); color:var(--green)">1</div>
+      <div class="txt"><b>الخادم المحلي لحل مشكلة Origin</b>
+        بدل تحميل الواجهة عبر <code>file://</code>، البرنامج يشغّل خادم HTTP على منفذ عشوائي في <code>127.0.0.1</code> (<code>local-server.ts</code>). ده حل ذكي لمشكلة Error 153 في مشغّل يوتيوب، وفيه تحقق من مسار الملفات لمنع الخروج من المجلد.</div>
+    </div>
+    <div class="kpi" style="margin-bottom:15px">
+      <div class="dot" style="background:var(--green-soft); color:var(--green)">2</div>
+      <div class="txt"><b>رسم التقدّم ثنائي المرحلة</b>
+        التنزيل بجودات عالية بيتحمّل كمسارين منفصلين (فيديو + صوت) ثم بيتدمجوا. الكود في <code>parseProgressLine()</code> بيرسم المرحلة الأولى 0-80% والتانية 80-100%، وبيكتشف الانتقال بمراقبة هبوط النسبة. حل عملي لمشكلة إن yt-dlp مش بيبلّغ عن تقدّم موحّد.</div>
+    </div>
+    <div class="kpi" style="margin-bottom:15px">
+      <div class="dot" style="background:var(--green-soft); color:var(--green)">3</div>
+      <div class="txt"><b>استرجاع تلقائي من خطأ HTTP 416</b>
+        لو الخادم رفض النطاق المطلوب (ملف جزئي تالف)، الكود بيوقف العملية، بينضّف الملفات الجزئية المتعلقة بنفس العنوان أو معرّف الفيديو، ويعيد التشغيل من الأول — مرة واحدة لكل مهمة لمنع الحلقة اللانهائية.</div>
+    </div>
+    <div class="kpi" style="margin-bottom:15px">
+      <div class="dot" style="background:var(--green-soft); color:var(--green)">4</div>
+      <div class="txt"><b>رسائل خطأ عربية مُشخِّصة</b>
+        بدل ما يعرض نص yt-dlp الخام، <code>parseYtDlpError()</code> بيفهم 6 حالات شائعة وبيترجمها لحلول عملية بالعربي (مثال: "المتصفح قيد التشغيل — أغلقه تماماً من إدارة المهام"). دي تجربة مستخدم محترمة.</div>
+    </div>
+    <div class="kpi">
+      <div class="dot" style="background:var(--green-soft); color:var(--green)">5</div>
+      <div class="txt"><b>استمرارية الحالة عبر الجلسات</b>
+        متجران منفصلان في <code>electron-store</code> (إعدادات + سجل تنزيلات)، مع كتابة مؤجّلة (debounce) كل ثانيتين أثناء التنزيل لتقليل ضغط القرص، وكتابة فورية عند الأحداث الحرجة. تفاصيل ناضجة.</div>
+    </div>
+  </div>
+
+  <h3>نقاط ضعف معمارية</h3>
+  <div class="card">
+    <ul>
+      <li><b>مركزية مفرطة في <code>download-manager.ts</code></b> — 1,146 سطر في ملف واحد (23% من الكود كله) بيدير: أنواع البيانات، تشغيل العمليات، تحليل مخرجات yt-dlp، طابور التزامن، التنظيف، والحفظ. المفروض يتقسّم على 3-4 وحدات: <code>progress-parser.ts</code>، <code>queue.ts</code>، <code>persistence.ts</code>.</li>
+      <li><b>نموذج البيانات مكرّر ثلاث مرات</b> — واجهات <code>VideoInfo</code> و <code>VideoFormat</code> و <code>DownloadTask</code> معرّفة يدوياً في <code>download-manager.ts</code> و<code>searchStore.ts</code> و<code>downloadStore.ts</code>. أي تعديل لازم يتعمل في 3 أماكن. المفروض مجلد <code>src/shared/types.ts</code> مشترك.</li>
+      <li><b>كتابة متغيّر عام قبل اكتمال التهيئة</b> — <code>ipc-handlers.ts:80</code> بينشئ مجلد التنزيل بـ <code>mkdirSync</code> على مستوى الموديول بدون <code>try/catch</code>. لو المسار غير صالح (قرص شبكة مفصول، صلاحيات، أو ملف إعدادات تالف) التطبيق <b>بينهار عند الإقلاع</b> بدون رسالة واضحة.</li>
+      <li><b>عدم تطابق أنواع</b> — <code>window.api</code> معرّف كـ <code>any</code> في <code>downloadStore.ts</code>، فبيفقد كل حماية TypeScript في طبقة الاتصال بالـ IPC رغم إن التوقيعات موجودة في الـ preload.</li>
+    </ul>
+  </div>
+
+  <!-- ================= 4. المشاكل الحرجة ================= -->
+  <h2><span class="num">4</span> المشاكل الحرجة — P0</h2>
+  <p class="lede">ميزات معلنة في التوثيق لكنها لا تعمل فعلياً، أو عوائق تمنع النشر.</p>
+
+  <div class="issue p0">
+    <h4><span class="tag t-p0">P0 · مشكلة</span> حفظ حجم وموضع النافذة لا يعمل — دالة ميتة</h4>
+    <p><b>الملف:</b> <code>src/main/index.ts:81</code></p>
+    <p>الدالة <code>saveWindowBounds</code> معرّفة بالكامل (منطق + debounce + معالجة حالة التكبير)، لكن <b>لا يتم استدعاؤها من أي مكان</b>. لا يوجد أي مستمع لحدثَي <code>resize</code> أو <code>move</code> على النافذة. النتيجة: الكود بيقرأ <code>windowBounds</code> عند الإقلاع (<code>index.ts:52</code>) لكنه <b>لا يكتبها أبداً</b>، فالنافذة بترجع دايماً للمقاس الافتراضي 1400×900.</p>
+    <p>ده مؤكَّد بأمر فحص الأنواع: <code>error TS6133: 'saveWindowBounds' is declared but its value is never read.</code> — الخطأ موجود لكن محدش شافه لأن مفيش أمر <code>typecheck</code> في المشروع.</p>
+    <div class="fix"><b>الإصلاح:</b> أضف بعد تعريف الدالة داخل <code>createWindow()</code>:
+      <code>mainWindow.on('resize', saveWindowBounds)</code> و <code>mainWindow.on('move', saveWindowBounds)</code>، وضيف <code>clearTimeout(boundsTimer)</code> في معالج <code>close</code> لتنظيف المؤقّت.</div>
+  </div>
+
+  <div class="issue p0">
+    <h4><span class="tag t-p0">P0 · مشكلة</span> حجب الإعلانات داخل المشغّل معطّل — كود ميت</h4>
+    <p><b>الملف:</b> <code>src/main/ad-blocker.ts:61-93</code></p>
+    <p>الملف بيحتوي على بلوك كامل لحقن CSS يخفي عناصر الإعلانات + سكربت JavaScript بيراقب الصفحة ويضغط زر "تخطّي الإعلان" تلقائياً. لكن البلوك ده مربوط بحدث <code>did-attach-webview</code>، والواجهة <b>لا تستخدم وسم <code>&lt;webview&gt;</code> خالص</b> — مشغّل الفيديو في <code>VideoPlayer.tsx:156</code> بيستخدم <code>&lt;iframe&gt;</code> عادي.</p>
+    <p>النتيجة العملية: الحجب على مستوى الشبكة (قائمة النطاقات في السطور 9-29) شغّال فعلاً وبيمنع طلبات <code>doubleclick</code> و<code>googlesyndication</code> وغيرها — لكن <b>الطبقة التانية (إخفاء الإعلانات + الضغط التلقائي على "تخطّي") لا تُنفَّذ إطلاقاً</b>، وهي المذكورة في التوثيق كـ "حجب الإعلانات (webRequest + CSS + JS)".</p>
+    <p>المشكلة مضاعفة: <code>webviewTag: true</code> في <code>index.ts:70</code> بيفتح سطح هجوم إضافي في المتصفح مقابل ميزة غير مستخدمة.</p>
+    <div class="fix"><b>الإصلاح:</b> الحل الأنسب هو حذف الكود الميت و<code>webviewTag: true</code>. الحل الأفضل وظيفياً: بدل الـ iframe، حمّل يوتيوب في <code>BrowserView</code>/<code>WebContentsView</code> مع <code>partition</code> منفصل، وحقن CSS/JS عبر <code>webContents.insertCSS()</code> و<code>executeJavaScript()</code> مباشرة — وقتها طبقة الحجب التانية تشتغل فعلاً.</div>
+  </div>
+
+  <div class="issue p0">
+    <h4><span class="tag t-p0">P0 · مشكلة</span> البناء لأنظمة macOS و Linux مكسور بالكامل</h4>
+    <p><b>الملف:</b> <code>electron-builder.yml:44-59</code> + <code>resources/bin/</code></p>
+    <p>ثلاث مشاكل متراكبة بتمنع <code>npm run dist:mac</code> و<code>dist:linux</code> من النجاح:</p>
+    <ul>
+      <li>الإعدادات بتشاور على <code>resources/icon.icns</code> (ماك) و<code>resources/icon.png</code> (لينكس) — <b>الملفان غير موجودين</b>. الموجود <code>icon.ico</code> فقط.</li>
+      <li>قاعدة <code>extraResources</code> فلترتها <code>**/*.exe</code> — يعني على ماك ولينكس ملفات <code>yt-dlp</code> و<code>ffmpeg</code> (بدون امتداد .exe) <b>مش هتتضمّن</b> في الحزمة، والتطبيق هيقع على النسخ المثبّتة في PATH فقط.</li>
+      <li>مجلد <code>resources/bin/</code> فيه <code>yt-dlp.exe</code> و<code>ffmpeg.exe</code> فقط — مفيش أي نسخ لماك أو لينكس.</li>
+    </ul>
+    <p>مع إن <code>README.md</code> بيدّعي دعم Windows و macOS و Linux في جدول "دعم المنصات".</p>
+    <div class="fix"><b>الإصلاح:</b> لو النشر على ويندوز فقط (وهو الواضح من وجود شهادة ويندوز و Inno Setup) — احذف أقسام <code>mac:</code> و<code>linux:</code> من الإعدادات وعدّل التوثيق. لو محتاج المنصات التلاتة، أضف الأيقونات المطلوبة ونسخ الملفات التنفيذية، وغيّر الفلتر لـ <code>**/*</code>.</div>
+  </div>
+
+  <div class="issue p0">
+    <h4><span class="tag t-p0">P0 · مشكلة</span> خطّان متوازيان لبناء المُثبِّت + مخرج Inno Setup فاضي</h4>
+    <p><b>الملفات:</b> <code>electron-builder.yml:31-42</code> · <code>installer.iss</code> · <code>build_and_sign.ps1</code> · <code>dist/setup/</code></p>
+    <p>المشروع فيه <b>مسارَي توزيع منفصلين لنفس الغرض</b>: إعدادات NSIS داخل <code>electron-builder.yml</code> (بتُنتج <code>ARN_Video_Downloader_Setup_v1.0.0.exe</code>)، وسكربت Inno Setup مستقل (<code>installer.iss</code>) بيُنتج مُثبِّت مختلف تماماً بنفس الاسم تقريباً. المساران مختلفان في السلوك: NSIS بيثبّت لكل مستخدم (<code>perMachine: false</code>)، وInno Setup بيطلب صلاحيات مدير (<code>PrivilegesRequired=admin</code>).</p>
+    <p>والأهم: مجلد <code>dist/setup/</code> <b>موجود لكنه فاضي تماماً</b> — يعني آخر تشغيل لـ <code>build_and_sign.ps1</code> وقف عند الخطوة 6 (ترجمة Inno Setup) أو اتشال المخرج بعدها. الموجود فعلياً في <code>dist/</code> هو <code>win-unpacked</code> (مجلد غير مُثبَّت) فقط.</p>
+    <div class="fix"><b>الإصلاح:</b> اختر مساراً واحداً. أنصح بـ NSIS لأن الحجم النهائي أصغر والضغط <code>compression: maximum</code> مظبوط، والتوقيع يتعمل عبر <code>signtoolOptions</code> في نفس الإعدادات بدل سكربت خارجي. لو هتفضل على Inno Setup، احذف قسم NSIS من الإعدادات واستخدم <code>--dir</code> فقط.</div>
+  </div>
+
+  <!-- ================= 5. الأمان ================= -->
+  <h2><span class="num">5</span> التقييم الأمني</h2>
+  <p class="lede">المشروع فيه أساس أمني سليم (Context Isolation مفعّل، Node Integration معطّل)، لكن 5 نقاط بتقوّض الفائدة.</p>
+
+  <div class="issue p1">
+    <h4><span class="tag t-p1">P1 · أمني</span> تثبيت شهادة جذر مخصّصة في مخزن ثقة الويندوز أثناء التثبيت</h4>
+    <p><b>الملف:</b> <code>installer.iss:57-60</code></p>
+    <p>المُثبِّت بيشغّل <code>certutil -addstore -f Root</code> على شهادة <code>ARN_Technology_Root.cer</code> الخاصة بالتطبيق، بصلاحيات مدير. ده بيضيف <b>جهة إصدار جذر مخصّصة</b> لجهاز المستخدم — يعني أي شهادة يصدرها صاحب المفتاح الخاص بتلك الشهادة هتبقى موثوقة تلقائياً من النظام بأكمله، مش للتطبيق ده بس.</p>
+    <p>ده نمط معروف إنه بيتصنّف PUA/مشبوه من برامج مكافحة الفيروسات ومن SmartScreen، وممكن يسبب حجب التطبيق أو تحذير للمستخدم — <b>وهو عكس الهدف المعلن</b> ("لمنع أي تحذيرات أمان").</p>
+    <div class="fix"><b>الإصلاح:</b> احذف السطرين نهائياً. التحذيرات بتتعالج بطريقتين فقط: (1) شهادة توقيع كود حقيقية من جهة معتمدة (CA) — ودي بتحل تحذيرات SmartScreen فعلاً، أو (2) النشر عبر Microsoft Store. الشهادة الذاتية (self-signed) مفيدة للتوقيع المحلي أثناء التطوير فقط، ومكانها مخزن <code>CurrentUser\My</code> — مش <code>Root</code>.</div>
+  </div>
+
+  <div class="issue p1">
+    <h4><span class="tag t-p1">P1 · أمني</span> تعطيل أمن الويب على مستوى النافذة كلها</h4>
+    <p><b>الملف:</b> <code>src/main/index.ts:65-72</code></p>
+    <p><code>webSecurity: false</code> + <code>sandbox: false</code> بيتطبّقوا على <b>كل</b> محتوى النافذة، بما فيه إطار يوتيوب الخارجي. تعطيل <code>webSecurity</code> بيلغي سياسة نفس-الأصل (Same-Origin Policy)، وده معناه إن أي محتوى خارجي بيتحمّل داخل التطبيق (إطار المشغّل، أو أي صفحة تُفتح لاحقاً) بيقدر يقرأ ويكتب في سياق الواجهة الأصلية.</p>
+    <p>الغالب إن الهدف كان تجاوز قيود الـ Origin لضمان تشغيل الإطار، لكن الحل المستخدم أوسع بكتير من اللازم — والخادم المحلي في <code>local-server.ts</code> بيحل نفس المشكلة بطريقة نظيفة.</p>
+    <div class="fix"><b>الإصلاح:</b> أعد <code>webSecurity</code> لـ <code>true</code>. المحتوى الخارجي يتحمّل في <code>partition</code> منفصل عبر <code>WebContentsView</code>، والاستثناءات المطلوبة تتضاف عبر <code>webRequest.onHeadersReceived</code> (وهو موجود بالفعل). كمان رجّع <code>sandbox: true</code> لأن الـ preload مش محتاج وصول مباشر لـ Node.</div>
+  </div>
+
+  <div class="issue p1">
+    <h4><span class="tag t-p1">P1 · أمني</span> <code>openExternal</code> بدون قائمة بروتوكولات مسموحة</h4>
+    <p><b>الملف:</b> <code>src/main/ipc-handlers.ts:225-229</code></p>
+    <p>المعالج بيستقبل أي نص من الواجهة ويمرّره مباشرة لـ <code>shell.openExternal()</code> بدون أي تحقق. لو وصل نص خبيث للواجهة (عبر عنوان فيديو أو وصف أو بيانات من yt-dlp)، ممكن يتفتح بروتوكول مخصّص زي <code>file://</code> أو أي بروتوكول مسجَّل في النظام (وهو ناقل تنفيذ معروف).</p>
+    <div class="fix"><b>الإصلاح:</b> سطران — <code>if (!/^https?:\/\//i.test(url)) return { success: false }</code> قبل الاستدعاء. وطبّقه كمان على <code>shell:openPath</code>.</div>
+  </div>
+
+  <div class="issue p1">
+    <h4><span class="tag t-p1">P1 · أمني</span> الخادم المحلي بيسمح بـ CORS مفتوح لكل الأصول</h4>
+    <p><b>الملف:</b> <code>src/main/local-server.ts:59-60</code></p>
+    <p>الردود بتحمل <code>Access-Control-Allow-Origin: *</code>. الخادم مربوط على <code>127.0.0.1</code> بمنفذ عشوائي (وده كويس)، لكن أي عملية محلية — أو أي صفحة ويب في المتصفح — بتقدر تكتشف المنفذ وتردّ على قراءة أصول التطبيق. المخاطرة منخفضة (المحتوى مش سرّي)، لكن الترويسة زيادة عن الحاجة.</p>
+    <p>ملاحظة إضافية: معالج المسار <code>if (!filePath.startsWith(rendererDistPath))</code> بيحمي من الخروج من المجلد فعلاً، لكن <code>startsWith</code> مقارنة نصية وليست حدود مسار — الأفضل <code>path.relative()</code> مع التحقق من إن الناتج مش بيبدأ بـ <code>..</code>.</p>
+    <div class="fix"><b>الإصلاح:</b> احذف ترويسة CORS نهائياً (المحتوى بيُحمَّل من نفس الأصل، فمش محتاجها)، وبدّل فحص المسار بـ <code>path.relative()</code>.</div>
+  </div>
+
+  <div class="issue p1">
+    <h4><span class="tag t-p1">P1 · متانة</span> إنشاء مجلد التنزيل بدون معالجة أخطاء عند الإقلاع</h4>
+    <p><b>الملف:</b> <code>src/main/ipc-handlers.ts:79-82</code></p>
+    <p><code>mkdirSync</code> بيتنفّذ على مستوى الموديول مباشرة، بدون <code>try/catch</code>. لو المسار المحفوظ في الإعدادات بقى غير متاح (قرص شبكة مفصول، USB متشال، مجلد محذوف بصلاحيات، أو ملف إعدادات تالف) — التطبيق <b>بيفشل في الإقلاع تماماً</b> بدون أي رسالة مفهومة للمستخدم، ومفيش طريقة يصلحها من داخل الواجهة.</p>
+    <div class="fix"><b>الإصلاح:</b> لفّها في <code>try/catch</code>، وعند الفشل ارجع للمسار الافتراضي <code>app.getPath('downloads')</code>، واعرض إشعار للمستخدم بإن مسار الحفظ اتغيّر.</div>
+  </div>
+
+  <!-- ================= 6. جودة الكود والممارسات ================= -->
+  <h2><span class="num">6</span> جودة الكود والممارسات الهندسية</h2>
+  <p class="lede">الفجوة الأكبر في المشروع ليست في الكود المكتوب، بل في الأدوات والعمليات المحيطة به.</p>
+
+  <div class="card">
+    <table>
+      <thead><tr><th>الممارسة</th><th>الحالة</th><th>الأثر</th></tr></thead>
+      <tbody>
+        <tr><td>نظام تحكم بالإصدارات (Git)</td><td><span class="tag t-no">غائب تماماً</span></td><td>لا يوجد تاريخ تغييرات، لا إمكانية رجوع، لا فروع للتجارب. <code>.gitignore</code> موجود لكنه معطّل عملياً.</td></tr>
+        <tr><td>اختبارات آلية</td><td><span class="tag t-no">صفر</span></td><td>لا يوجد إطار اختبار (Vitest/Jest) ولا ملف اختبار واحد. منطق حساس زي <code>parseProgressLine</code> و<code>parseYtDlpError</code> غير مُختبَر رغم إنه مثالي للاختبار الوحدوي.</td></tr>
+        <tr><td>فحص ثابت (ESLint)</td><td><span class="tag t-no">غائب</span></td><td>لا ملف إعداد ولا حزمة. لو كان موجود، كان هيمسك مشكلة P0 رقم 1 تلقائياً.</td></tr>
+        <tr><td>تنسيق موحّد (Prettier)</td><td><span class="tag t-no">غائب</span></td><td>تنسيق يدوي — مقبول لكنه عرضة للتفاوت مع الوقت.</td></tr>
+        <tr><td>أمر فحص أنواع</td><td><span class="tag t-mid">ناقص</span></td><td><code>npm run build</code> = <code>electron-vite build</code> فقط، بدون <code>tsc</code>. النتيجة: أخطاء TypeScript بتعدّي للبناء بصمت.</td></tr>
+        <tr><td>TypeScript strict mode</td><td><span class="tag t-ok">مفعّل</span></td><td><code>strict: true</code> في كلا الإعدادين — نقطة قوة حقيقية.</td></tr>
+        <tr><td>فصل السياق (Context Isolation)</td><td><span class="tag t-ok">مفعّل</span></td><td><code>contextIsolation: true</code> و <code>nodeIntegration: false</code> — الأساس الأمني سليم.</td></tr>
+        <tr><td>واجهة IPC مُوثّقة الأنواع</td><td><span class="tag t-ok">جيد</span></td><td>24 دالة بتوقيعات واضحة في الـ preload (مع تحفّظ: مُسقطة إلى <code>any</code> في المتجر).</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="warn">
+    <b>أسرع مكسب ممكن:</b> ضيف أمر واحد لـ <code>package.json</code>:
+    <div style="margin-top:8px; direction:ltr; text-align:left"><code>"typecheck": "tsc --noEmit -p tsconfig.node.json &amp;&amp; tsc --noEmit -p tsconfig.web.json"</code></div>
+    <div style="margin-top:8px">الأمر ده لوحده هيمسك مشكلة P0 رقم 1 وكل أخطاء الأنواع المستقبلية. تكلفته صفر، وعائده فوري.</div>
+  </div>
+
+  <h3>مشاكل جودة تفصيلية</h3>
+  <div class="issue p2">
+    <h4><span class="tag t-p2">P2</span> حزمتان معتمدتان غير مستخدمتين</h4>
+    <p><code>@ghostery/adblocker-electron</code> (المُدرَجة في <code>package.json</code> كحزمة إنتاج) <b>لا تُستورَد في أي ملف</b> — مش موجودة في الكود خالص. والحجب الفعلي مكتوب يدوياً في <code>ad-blocker.ts</code>. كمان <code>@electron-toolkit/preload</code> غير مستخدمة (الـ preload بيستورد من <code>electron</code> مباشرة).</p>
+    <div class="fix"><b>الإصلاح:</b> احذف الحزمتين من <code>dependencies</code>. لو ناوي تستخدم Ghostery فعلاً، هي أقوى بكتير من القائمة اليدوية وبتشتغل بقوائم EasyList — بس وقتها استبدل الكود اليدوي بالكامل.</div>
+  </div>
+
+  <div class="issue p2">
+    <h4><span class="tag t-p2">P2</span> فوضى في ملفات المستودع</h4>
+    <p>ملفات زائدة في الجذر بتشوّش على المشروع:</p>
+    <ul>
+      <li><code>electron.vite.config.1788952921554.mjs</code> — نسخة مُجمَّعة قديمة من ملف الإعدادات نفسه، بلاحقة طابع زمني. لا تُستخدم، وبتحتوي إعدادات مطابقة. <b>احذفها.</b></li>
+      <li><code>tsconfig.node.tsbuildinfo</code> + <code>tsconfig.web.tsbuildinfo</code> — 98 كيلوبايت من مخرجات بناء مؤقتة، مكانها في <code>.gitignore</code>.</li>
+      <li><code>folderico-p14672.ico</code> — أيقونة مجلد من أداة خارجية، غير مستخدمة في أي إعداد.</li>
+      <li><code>desktop.ini</code> — ملف نظام ويندوز لتخصيص عرض المجلد، لا علاقة له بالمشروع.</li>
+    </ul>
+  </div>
+
+  <div class="issue p2">
+    <h4><span class="tag t-p2">P2</span> تناقض في الترخيص — نقطة قانونية حقيقية</h4>
+    <p><code>README.md</code> بيقول "هذا المشروع مفتوح المصدر ومتاح للاستخدام الشخصي والتعليمي"، لكن:</p>
+    <ul>
+      <li>مفيش ملف <code>LICENSE</code> في المشروع.</li>
+      <li><code>package.json</code> مفيش فيه حقل <code>license</code>، وفي المقابل فيه <code>"copyright": "Copyright © 2026 ARN Technology. All rights reserved."</code> — يعني "كل الحقوق محفوظة" صراحةً.</li>
+      <li>الحزمتان <code>yt-dlp</code> و<code>ffmpeg</code> مُضمَّنتان في التوزيع. ترخيص نسخة ffmpeg المستخدمة (GPL مقابل LGPL) لازم يتحدّد — نسخ GPL بتفرض التزامات إضافية عند إعادة التوزيع.</li>
+    </ul>
+    <div class="fix"><b>الإصلاح:</b> حدّد الموقف بوضوح. لو مفتوح المصدر: أضف ملف <code>LICENSE</code> (MIT أو GPL) وحدّث حقل <code>license</code> وأزل جملة "All rights reserved". لو مغلق: عدّل وصف README. وفي الحالتين، وثّق ترخيص ffmpeg وyt-dlp في ملف <code>THIRD-PARTY-NOTICES</code>.</div>
+  </div>
+
+  <div class="issue p2">
+    <h4><span class="tag t-p2">P2</span> إعدادات التوقيع غير مرتبطة بمسار البناء</h4>
+    <p><code>electron-builder.yml</code> مفيش فيه أي قسم توقيع (<code>certificateFile</code> / <code>signtoolOptions</code>). التوقيع بيحصل يدوياً في <code>build_and_sign.ps1</code> <b>بعد</b> البناء. النتيجة: أمر <code>npm run dist:win</code> بيُنتج مُثبِّت <b>غير موقَّع</b>، والموقَّع بيطلع من مسار مختلف تماماً (Inno Setup). يعني نفس المشروع بيُنتج مُثبِّتين مختلفين في الثقة حسب الأمر المستخدم.</p>
+    <div class="fix"><b>الإصلاح:</b> انقل التوقيع لإعدادات electron-builder واستخدم <code>CSC_LINK</code>/<code>CSC_KEY_PASSWORD</code> من متغيّرات البيئة، بحيث كل مسارات البناء تُنتج ملفات موقَّعة تلقائياً.</div>
+  </div>
+
+  <div class="issue p2">
+    <h4><span class="tag t-p2">P2</span> رقم الإصدار مكرّر في 4 أماكن</h4>
+    <p><code>package.json</code> (<code>1.0.0</code>) · <code>App.tsx:45</code> (نص "v1.0.0" ثابت) · <code>installer.iss:8</code> (<code>MyAppVersion</code>) · <code>electron-builder.yml</code> (بيستخدم <code>${version}</code> — وده الصح).</p>
+    <p>عند رفع الإصدار، الشارة في الواجهة ونسخة المُثبِّت هيفضلوا 1.0.0 بدون أي تحذير. الأفضل: اقرأ الإصدار من <code>app.getVersion()</code> ومرّره للواجهة عبر IPC.</p>
+  </div>
+
+  <div class="issue p2">
+    <h4><span class="tag t-p2">P2</span> تفاصيل صغيرة في منطق الواجهة</h4>
+    <ul>
+      <li><b><code>downloadStore.ts:126-133</code></b> — <code>resumeDownload</code> بتحدّث الحالة لـ <code>'downloading'</code> فوراً، لكن العملية الرئيسية ممكن تحطّها في <code>'pending'</code> لو الطابور ممتلئ. الواجهة بتعرض حالة غلط لثانية أو اثنتين لحد ما ييجي حدث التقدّم الأول.</li>
+      <li><b><code>downloadStore.ts:301</code></b> — دالة <code>parseSpeed</code> بتفحص <code>speedStr === 'Merging...'</code> لكن الكود الفعلي في <code>download-manager.ts:822</code> بيكتب <code>'جاري الدمج...'</code>. الشرط <b>عمره ما بيتحقق</b>، فسرعة الدمج ممكن تُحسب غلط في الإجمالي.</li>
+      <li><b><code>PlaylistView.tsx:9</code></b> — <code>selectedIds</code> بتتهيّأ من قائمة الفيديوهات مرة واحدة عند أول رسم؛ لو القائمة اتغيّرت لاحقاً، التحديد القديم يفضل معلّق.</li>
+    </ul>
+  </div>
+
+  <!-- ================= 7. دقة التوثيق ================= -->
+  <h2><span class="num">7</span> مراجعة دقة التوثيق</h2>
+  <p class="lede">التوثيق موجود وكامل بالعربي — لكن فيه أرقام وادعاءات مافيش تطابق مع الواقع.</p>
+
+  <div class="card">
+    <table>
+      <thead><tr><th>الادعاء في التوثيق</th><th>الواقع المُقاس</th><th></th></tr></thead>
+      <tbody>
+        <tr><td><code>PROJECT_SUMMARY.md</code>: "out/main/index.js → 22.38 KB"</td><td class="n">52.3 KB فعلياً</td><td><span class="tag t-no">خطأ</span></td></tr>
+        <tr><td><code>PROJECT_SUMMARY.md</code>: "الإجمالي → 328 KB"</td><td class="n">≈ 440 KB فعلياً</td><td><span class="tag t-no">خطأ</span></td></tr>
+        <tr><td><code>README.md</code>: "لا يتم تخزين أي بيانات حساسة"</td><td>التطبيق بيحفظ: مسار التنزيل، الإعدادات، <b>وسجل تنزيلات كامل</b> بعناوين ومسارات الملفات، وحجم/موضع النافذة</td><td><span class="tag t-mid">مضلِّل</span></td></tr>
+        <tr><td><code>README.md</code>: دعم Windows + macOS + Linux</td><td>البناء لماك ولينكس مكسور (P0 رقم 3)</td><td><span class="tag t-no">غير صحيح</span></td></tr>
+        <tr><td><code>README.md</code>: "حجب الإعلانات (webRequest + CSS + JS)"</td><td>طبقة CSS/JS كود ميت (P0 رقم 2)</td><td><span class="tag t-no">جزئي</span></td></tr>
+        <tr><td><code>README.md</code>: "React 19: المشروع يستخدم React 18"</td><td>عنوان متبقّي من نص أقدم</td><td><span class="tag t-p2">تنسيقي</span></td></tr>
+        <tr><td><code>QUICKSTART.md</code>: <code>cd my-video-downloader</code></td><td>اسم المجلد الفعلي <code>ARN Video Downloader</code></td><td><span class="tag t-p2">خطأ</span></td></tr>
+        <tr><td>شجرة الملفات في <code>README.md</code></td><td>ناقصة: <code>tray.ts</code> · <code>local-server.ts</code> · <code>AboutDialog</code> · <code>ThemeToggle</code> · <code>AnalogSpeedometer</code> · <code>useTheme</code> · <code>ad-blocker.ts</code></td><td><span class="tag t-mid">ناقص</span></td></tr>
+        <tr><td><code>README.md</code>: "هذا المشروع مفتوح المصدر"</td><td>مفيش LICENSE، وpackage.json بيقول All rights reserved</td><td><span class="tag t-no">متناقض</span></td></tr>
+        <tr><td><code>PROJECT_SUMMARY.md</code>: "Sprint 6 — جاهز للتنفيذ"</td><td>منطقي — <code>dist/setup/</code> فاضي والمُثبِّت لم يُنتَج</td><td><span class="tag t-ok">صحيح</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <b>ملاحظة إيجابية:</b> نسبة الخطأ في التوثيق عالية، لكن <b>النية واضحة والمحتوى منظّم</b> — التوثيق العربي الكامل لثلاث ملفات مش حاجة بتتعمل كتير، ومستوى التفصيل (جدول الملفات، خطوات الإعداد، حل المشاكل) أعلى من المتوسط. المشكلة إنه اتكتب في مرحلة مبكرة ومارفضش مع تطور الكود. الحل مش إعادة كتابة، بل جعل الأرقام تُولَّد آلياً.
+  </div>
+
+  <!-- ================= 8. خطة العمل ================= -->
+  <h2><span class="num">8</span> خطة العمل المُرتَّبة</h2>
+  <p class="lede">مرتّبة حسب العائد مقابل التكلفة — الأعلى عائداً أولاً.</p>
+
+  <div class="card">
+    <div class="road">
+      <div class="when">فوراً<br><span style="font-weight:400">(أقل من ساعة)</span></div>
+      <div class="what">
+        <b>1. ابدأ Git.</b> <code>git init</code> + commit أولي. ده أهم خطوة في القائمة كلها — كل حاجة تانية قابلة للإصلاح، لكن كود بدون تحكم بالإصدارات مخاطرة مفتوحة.<br>
+        <b>2. ضيف أمر <code>typecheck</code></b> لـ package.json وشغّله — هيمسك مشكلة P0 رقم 1 فوراً.<br>
+        <b>3. أصلح حفظ موضع النافذة</b> (سطران: مستمعا <code>resize</code> و<code>move</code>).<br>
+        <b>4. احذف الملفات الزائدة</b> من الجذر وأضف <code>*.tsbuildinfo</code> لـ <code>.gitignore</code>.
+      </div>
+    </div>
+
+    <div class="road">
+      <div class="when">الأسبوع الأول<br><span style="font-weight:400">(يوم عمل)</span></div>
+      <div class="what">
+        <b>5. احذف تثبيت شهادة الجذر</b> من <code>installer.iss</code> — أعلى مخاطرة أمنية وسمعة.<br>
+        <b>6. أعد <code>webSecurity: true</code></b> و<code>sandbox: true</code>، واختبر إن إطار المشغّل لسه شغّال (الخادم المحلي موجود فالمفروض يشتغل).<br>
+        <b>7. قيّد <code>openExternal</code> بـ http/https</b>، وامسح ترويسة CORS من الخادم المحلي.<br>
+        <b>8. حُط <code>mkdirSync</code> في try/catch</b> مع مسار احتياطي.<br>
+        <b>9. وضّح قرار التوزيع:</b> ويندوز فقط ولا تلات منصات؟ واختر NSIS أو Inno Setup — واحد بس.
+      </div>
+    </div>
+
+    <div class="road">
+      <div class="when">الشهر الأول<br><span style="font-weight:400">(3-5 أيام)</span></div>
+      <div class="what">
+        <b>10. اكتب اختبارات وحدة</b> لـ <code>parseProgressLine</code> و <code>parseYtDlpError</code> و <code>parseSpeed</code> — دوال خالصة (pure) ومنطقها حسّاس، واختبارها سهل جداً.<br>
+        <b>11. فعّل ESLint + Prettier</b> — نص يوم إعداد، عائد مستمر.<br>
+        <b>12. احذف الحزم غير المستخدمة</b> والحزمة الميتة <code>webviewTag</code> وكود حجب الإعلانات الميت.<br>
+        <b>13. حل مشكلة حجب الإعلانات فعلياً</b> عبر <code>WebContentsView</code> مع حقن CSS/JS مباشرة.<br>
+        <b>14. وحّد الإصدار</b> عبر <code>app.getVersion()</code>.<br>
+        <b>15. حدّد الترخيص</b> نهائياً ووثّق تراخيص yt-dlp وffmpeg.
+      </div>
+    </div>
+
+    <div class="road">
+      <div class="when">تحسينات<br><span style="font-weight:400">(لاحقاً)</span></div>
+      <div class="what">
+        <b>16. قسّم <code>download-manager.ts</code></b> لـ 4 وحدات واستخرج الأنواع المشتركة لـ <code>src/shared/types.ts</code>.<br>
+        <b>17. قلّل حجم ffmpeg</b> ببناء مخصّص (من 47 ميجا لـ ~10 ميجا).<br>
+        <b>18. وثّق الطريق لشهادة توقيع حقيقية</b> — هي الحل الوحيد الفعلي لتحذيرات SmartScreen.<br>
+        <b>19. ولّد أرقام التوثيق آلياً</b> بدل كتابتها يدوياً.
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 9. الخلاصة ================= -->
+  <h2><span class="num">9</span> الحكم النهائي</h2>
+
+  <div class="card">
+    <p><b>ده مشروع كويس — والفرق بينه وبين مشروع احترافي كامل مش في الكود، بل في الحاجات المحيطة بيه.</b></p>
+    <p>الجزء الأصعب في تطبيق زي ده هو التعامل مع <code>yt-dlp</code>: عملية خارجية، مخرجات نصية مش مستقرة، تنزيلات متعددة المسارات، انقطاعات شبكة، ملفات جزئية تالفة، وأخطاء بترجع بنصوص غير مفهومة. المشروع ده بيتعامل مع كل الحالات دي — وفيه حلول مبتكرة زي الاسترجاع التلقائي من خطأ 416 ورسم التقدّم ثنائي المرحلة والخادم المحلي. دي مش تفاصيل حد بيكتبها من غير ما يتخبّط فيها فعلاً.</p>
+    <p>في المقابل، <b>4 ميزات معلنة مش شغّالة</b> (حفظ النافذة، حجب إعلانات المشغّل، بناء ماك/لينكس، إنتاج المُثبِّت)، و<b>مخاطرة أمنية واحدة خطيرة</b> (شهادة الجذر)، و<b>صفر ممارسات هندسية</b> (لا Git، لا اختبارات، لا ESLint).</p>
+    <p>الأولوية واضحة: <b>Git الأول</b>، وبعدين الثلاث خطوات اللي في القسم 8 تحت "فوراً" — كلها مجتمعة أقل من ساعة شغل، وبتحوّل المشروع من "كود بيشتغل على جهازي" لـ "مشروع بيتطوّر بأمان".</p>
+    <p style="margin-bottom:0">المشروع ده عنده أساس قوي فعلاً. المشكلة إنه واقف على أرض رملية من ناحية العمليات، ومحتاج يتثبّت قبل ما يكبر.</p>
+  </div>
+
+  <footer>
+    تقرير تحليل هندسي — ARN Video Downloader v1.0.0 · 15 سبتمبر 2026<br>
+    كل الأرقام والملاحظات مبنية على فحص مباشر لملفات المصدر ومخرجات البناء على القرص، مع تشغيل فحص أنواع TypeScript على المشروعين (Main/Renderer).
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,42 @@
+appId: com.arntechnology.videodownloader
+productName: ARN Video Downloader
+copyright: Copyright © 2026 ARN Technology. All rights reserved.
+
+directories:
+  buildResources: resources
+  output: dist
+
+files:
+  - "out/**/*"
+  - "!out/**/*.map"
+
+asar: true
+compression: maximum
+
+extraResources:
+  - from: resources/bin
+    to: bin
+    filter:
+      - "**/*.exe"
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: resources/icon.ico
+  legalTrademarks: ARN Technology
+  publisherName: ARN Technology
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: ARN Video Downloader
+  uninstallDisplayName: ARN Video Downloader
+  runAfterFinish: true
+  differentialPackage: false
+  artifactName: "${productName}_Setup_v${version}.${ext}"
